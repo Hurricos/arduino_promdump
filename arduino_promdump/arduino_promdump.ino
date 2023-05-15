@@ -37,23 +37,39 @@ uint8_t  GND = 0;           // GND pin
 uint8_t  bitOrder = 0;      // Bit order: LSB=>0, MSB=>1
 
 // To ease bitwise operations
-uint16_t bits[] = {
-  0b0000000000000001,
-  0b0000000000000010,
-  0b0000000000000100,
-  0b0000000000001000,
-  0b0000000000010000,
-  0b0000000000100000,
-  0b0000000001000000,
-  0b0000000010000000,
-  0b0000000100000000,
-  0b0000001000000000,
-  0b0000010000000000,
-  0b0000100000000000,
-  0b0001000000000000,
-  0b0010000000000000,
-  0b0100000000000000,
-  0b1000000000000000
+uint32_t bits[] = {
+  0b00000000000000000000000000000001,
+  0b00000000000000000000000000000010,
+  0b00000000000000000000000000000100,
+  0b00000000000000000000000000001000,
+  0b00000000000000000000000000010000,
+  0b00000000000000000000000000100000,
+  0b00000000000000000000000001000000,
+  0b00000000000000000000000010000000,
+  0b00000000000000000000000100000000,
+  0b00000000000000000000001000000000,
+  0b00000000000000000000010000000000,
+  0b00000000000000000000100000000000,
+  0b00000000000000000001000000000000,
+  0b00000000000000000010000000000000,
+  0b00000000000000000100000000000000,
+  0b00000000000000001000000000000000,
+  0b00000000000000010000000000000000,
+  0b00000000000000100000000000000000,
+  0b00000000000001000000000000000000,
+  0b00000000000010000000000000000000,
+  0b00000000000100000000000000000000,
+  0b00000000001000000000000000000000,
+  0b00000000010000000000000000000000,
+  0b00000000100000000000000000000000,
+  0b00000001000000000000000000000000,
+  0b00000010000000000000000000000000,
+  0b00000100000000000000000000000000,
+  0b00001000000000000000000000000000,
+  0b00010000000000000000000000000000,
+  0b00100000000000000000000000000000,
+  0b01000000000000000000000000000000,
+  0b10000000000000000000000000000000
 };
 
 // Individual device's configuration
@@ -63,10 +79,12 @@ uint16_t bits[] = {
 #include "MB7054.hpp"
 #include "MB7123.hpp"
 #include "6349.hpp"
+#include "H8_538_HN28F101.hpp"
 
 // Basic pin configuration for all devices
 void basicSetup(){
   for(int i=0;i<CE_pins;i++) pinMode(CE[i], OUTPUT);
+  ENABLE(true);
   for(int i=0;i<A_pins;i++) {
     pinMode(A[i] , OUTPUT);
     digitalWrite(A[i],LOW);
@@ -102,7 +120,7 @@ uint8_t getByte(bool fuse = false){
   String  fuses;
   uint8_t result = 0x00;
   uint8_t status;
-  ENABLE(true); // Enable CHIP for reading
+  // ENABLE(true); // Enable CHIP for reading
   for(int i=0; i<O_pins;i++){
     status = digitalRead(O[i]);
     if(bitOrder == 0) result |= status << i;
@@ -110,7 +128,7 @@ uint8_t getByte(bool fuse = false){
     fuses.concat(status);  // Save each output state
     fuses.concat(":");
   }
-  ENABLE(false); // Disable it for next read
+  // ENABLE(false); // Disable it for next read
   fuses.remove(fuses.length()-1,1);
   if(fuse == true){
     if(bitOrder == 1) {
@@ -123,7 +141,7 @@ uint8_t getByte(bool fuse = false){
   return result;
 }
 
-String setAddress(uint16_t address){
+String setAddress(uint32_t address){
   String ret;
   uint8_t status;
   for(uint8_t i=0; i<A_pins;i++){                    // Process all address pins
@@ -186,6 +204,10 @@ bool config_device(String device){
     config_6349();
     basicSetup();
     return true;
+  }else if(device.equals("hn28f101")) {
+    config_hn28();
+    basicSetup();
+    return true;
   }
   return false;
 }
@@ -209,7 +231,7 @@ void MainMenu()
   Serial.println("");
   Serial.println("Available devices:");
   Serial.println("");
-  Serial.println("82s123, 82s129, 82s141, 6348, 6349, mb7054, mb7123");
+  Serial.println("82s123, 82s129, 82s141, 6348, 6349, mb7054, mb7123, hn28f101");
   Serial.println("****************************************************************************************");
   Serial.write(0x00); // Sync char for external C++ client
 
@@ -249,7 +271,7 @@ void MainMenu()
     Serial.println("# Format: ");
     Serial.println("# [Adress Int][Address Pins Bits]:[Output Pins Bits]");
     Serial.println("# [0.........][0:1:2:3:4:5:6:8..]:[0:1:2:3:4:5:6...]");
-    for(uint16_t address=0;address<PROMsize;address++){
+    for(uint32_t address=0;address<PROMsize;address++){
         String ret = setAddress(address);
         sprintf(message, "[%03d][%s]:[", address, ret.c_str());
         Serial.print(message);
@@ -265,7 +287,7 @@ void MainMenu()
   }else if(cmd.equals("text")){
     Serial.println(" ");
     int col=0;
-    for(uint16_t address=0;address<PROMsize;address++){
+    for(uint32_t address=0;address<PROMsize;address++){
       String ret = setAddress(address);
       uint8_t received_byte = getByte(false);
       crc.update(received_byte);
@@ -286,7 +308,7 @@ void MainMenu()
     Serial.println(message);
     Serial.println(" ");
   }else if(cmd.equals("bin")){
-    for(uint16_t address=0;address<PROMsize;address++){
+    for(uint32_t address=0;address<PROMsize;address++){
       String ret = setAddress(address);
       uint8_t received_byte = getByte(false);
       Serial.write(received_byte);
@@ -301,6 +323,9 @@ void MainMenu()
 void setup(){
   Serial.begin(115200);
   Serial.println("                      "); // Small flush for the Arduino's IDE serial monitor
+
+  pinMode(52, INPUT); // since NMI wants to pull the whole thing down whenever it can
+  //digitalWrite(52,HIGH);
 }
 
 void loop(){
