@@ -324,8 +324,15 @@ void setup(){
   Serial.begin(115200);
   Serial.println("                      "); // Small flush for the Arduino's IDE serial monitor
 
-  pinMode(52, INPUT); // since NMI wants to pull the whole thing down whenever it can
-  //digitalWrite(52,HIGH);
+  pinMode( 12, OUTPUT );
+  // https://forum.arduino.cc/t/autonomous-clock-generation-with-mega-2560/699682/3
+  // 1MHz on pin12
+  //WGM=15 Fast PWM, TOP=OCR1A, BOTTOM=0
+  //prescaler = /1 (16MHz clock rate)
+  TCCR1A = _BV(COM1B1) | _BV(WGM11) | _BV(WGM10);
+  TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS10);
+  OCR1A = 15;
+  OCR1B = 7;
 }
 
 void loop(){

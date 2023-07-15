@@ -13,8 +13,8 @@
  * 61  50 # CE
  * 101 25 # WE
  * 19  Vcc# Vpp = 5V
- * 74     # EXTAL
- * 75     # XTAL
+ * 74 12  # EXTAL
+ * 75 NONE# XTAL
  * 36 27  # EO0 (Data output 0)
  * 37 28  # EO1
  * 38 29  # EO2
@@ -103,17 +103,9 @@ void config_hn28(){
     //  GND = A7;
     pinMode(26, OUTPUT);
     digitalWrite(26, LOW);
-    delay(10);
+    delay(1);
     digitalWrite(26, HIGH);
-    delay(10);
-    pinMode( 12, OUTPUT );
-    // https://forum.arduino.cc/t/autonomous-clock-generation-with-mega-2560/699682/3
-    //WGM=15 Fast PWM, TOP=OCR1A, BOTTOM=0
-    //prescaler = /1 (16MHz clock rate)
-    TCCR1A = _BV(COM1B1) | _BV(WGM11) | _BV(WGM10);
-    TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS10);
-    OCR1A = 15;
-    OCR1B = 7; 
+
 }
 
 // First, boot chip in PROM mode using the mode pins.
