@@ -8,12 +8,14 @@
 /*
  * Pin map
  *
+ * H8|Mega# Pin meaning
+ * --|----#
  * 71  26 # RES
  * 55  44 # OE
  * 61  50 # CE
  * 101 25 # WE
- * 19  Vcc# Vpp = 5V
- * 74 12  # EXTAL
+ * 19  Vcc# ¬RESO on H8 - for PROM READ, this is Vpp = 5V, per https://downloads.laboratoryb.org/insight/documents/H8_538F_HWM_linear.PDF#page=510
+ * 74 12  # EXTAL - H8 calls it that; I use Mega pin 12 to create a clock signal, see commit 94bb90af ("fix: hn28f101: Generate and map 1MHz clock to EXTAL")
  * 75 NONE# XTAL
  * 36 27  # EO0 (Data output 0)
  * 37 28  # EO1
@@ -40,7 +42,7 @@
  * 60 49  # EA14
  * 66 51  # EA15
  * 100 53 # EA16
- * 1   5V # VCC
+ * 1   5V # VCC - in PROM "Read" mode, here's how much current we need to supply - https://downloads.laboratoryb.org/insight/documents/H8_538F_HWM_linear.PDF#page=515
  * 44  5V # VCC
  * 62  5V # VCC
  * 63  5V # VCC
